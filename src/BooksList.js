@@ -1,11 +1,40 @@
 import React, { Component } from 'react'
-import PropTypes from 'prop-types'
-import Book from './Book'
 import { Link } from 'react-router-dom'
+import * as BooksAPI from './BooksAPI'
+import PropTypes from 'prop-types'
+import Bookshelf from './Bookshelf'
 
 class BooksList extends Component {
+  state = {
+    books: []
+  }
+
+  componentDidMount = () => {
+    this.loadBooks();
+  }
+  
+  loadBooks = () => {
+    BooksAPI.getAll().then(books => { 
+      this.setState({ books });
+    });
+  }
+
+  // Increases UI update performance from 3 sec to 1 sec when shelf value is changed.
+  updateStateOptimistically = (book, newShelfVal) => {
+    const bookCopy = JSON.parse(JSON.stringify(book));
+    bookCopy.shelf = newShelfVal;
+    const copyOfBooksExeptChanged = this.state.books.filter(b => b.id !== book.id);
+    this.setState({ books: [...copyOfBooksExeptChanged, bookCopy]});
+  };
+
+  handleShelfChange = (book, value) => {
+    this.updateStateOptimistically(book, value);
+    this.props.onShelfChange(book, value)
+    .then(this.loadBooks); // Reload from Database because this is the truth.
+  }
+
   render() {
-    const { books } = this.props;
+    const { books } = this.state;
 
     return (
       <div className="list-books">
@@ -14,39 +43,9 @@ class BooksList extends Component {
         </div>
         <div className="list-books-content">
           <div>
-            <div className="bookshelf">
-              <h2 className="bookshelf-title">Currently Reading</h2>
-              <div className="bookshelf-books">
-                <ol className="books-grid">
-                  {books.filter(book => book.shelf === 'currentlyReading').map(book => (
-                    <Book key={book.id} thumbnailUrl={book.imageLinks.thumbnail}
-                      title={book.title} authors={book.authors.join(', ')} />
-                  ))}
-                </ol>
-              </div>
-            </div>
-            <div className="bookshelf">
-              <h2 className="bookshelf-title">Want to Read</h2>
-              <div className="bookshelf-books">
-                <ol className="books-grid">
-                  {books.filter(book => book.shelf === 'wantToRead').map(book => (
-                    <Book key={book.id} thumbnailUrl={book.imageLinks.thumbnail}
-                      title={book.title} authors={book.authors.join(', ')} />
-                  ))}
-                </ol>
-              </div>
-            </div>
-            <div className="bookshelf">
-              <h2 className="bookshelf-title">Read</h2>
-              <div className="bookshelf-books">
-                <ol className="books-grid">
-                  {books.filter(book => book.shelf === 'read').map(book => (
-                    <Book key={book.id} thumbnailUrl={book.imageLinks.thumbnail}
-                      title={book.title} authors={book.authors.join(', ')} />
-                  ))}
-                </ol>
-              </div>
-            </div>
+            <Bookshelf shelf='currentlyReading' title='Currently Reading' books={books} onShelfChange={this.handleShelfChange} />
+            <Bookshelf shelf='wantToRead' title='Want to Read' books={books} onShelfChange={this.handleShelfChange} />
+            <Bookshelf shelf='read' title='Read' books={books} onShelfChange={this.handleShelfChange} />
           </div>
         </div>
         <div className="open-search">
@@ -58,7 +57,7 @@ class BooksList extends Component {
 }
 
 BooksList.propTypes = {
-  books: PropTypes.array.isRequired
+  onShelfChange: PropTypes.func.isRequired
 };
 
 export default BooksList;

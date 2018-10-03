@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import * as BooksAPI from './BooksAPI'
 import * as _ from 'lodash'
 import Book from './Book'
+import PropTypes from 'prop-types'
 
 class BooksSearch extends Component {
   constructor(props) {
@@ -16,18 +17,23 @@ class BooksSearch extends Component {
     foundBooks: []
   };
 
-  handleSearchTextChange = (evt) => {
-    const txt = evt.target.value;
-    this.setState({ searchText: txt });
-
-    this.searchBooksThrottle(txt);
+  handleSearchTextChange = (event) => {
+    const searchText = event.target.value;
+    this.setState({ searchText });
+    this.searchBooksThrottle();
   };
 
-  searchBooks = (arg) => {
-    BooksAPI.search(arg).then(res => {
-      this.setState({foundBooks: res});
-      console.log(res);
+  searchBooks = () => {
+    BooksAPI.search(this.state.searchText)
+    .then(foundBooks => {
+      this.setState({foundBooks});
+      console.log(foundBooks);
     });
+  }
+
+  handleShelfChange = (book, value) => {
+    this.props.onShelfChange(book, value)
+    .then(this.searchBooks); // Reload from Database because this is the truth.
   }
 
   render() {
@@ -44,8 +50,7 @@ class BooksSearch extends Component {
         <div className="search-books-results">
           <ol className="books-grid">
             {foundBooks.map(book => (
-              <Book key={book.id} thumbnailUrl={book.imageLinks.thumbnail}
-                title={book.title} authors={book.authors && book.authors.join(', ')} />
+              <Book key={book.id} book={book} onShelfChange={this.handleShelfChange} />
             ))}
           </ol>
         </div>
@@ -53,5 +58,9 @@ class BooksSearch extends Component {
     )
   };
 }
+
+BooksSearch.propTypes = {
+  onShelfChange: PropTypes.func.isRequired
+};
 
 export default BooksSearch;

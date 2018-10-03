@@ -5,28 +5,21 @@ import BooksList from './BooksList'
 import BooksSearch from './BooksSearch'
 import { Route } from 'react-router-dom'
 
-class BooksApp extends React.Component {
-  state = {
-    books: []
-  }
 
-  componentDidMount = () => {
-    BooksAPI.getAll().then(b => { 
-      console.log(b, b[0]);
-      this.setState({ books: b });
-    });
+class BooksApp extends React.Component {
+  onShelfChange = (book, value) => {
+    // Return promise so caller knows when update is complete.
+    return BooksAPI.update(book, value);
   }
 
   render() {
-    const { books } = this.state;
-
     return (
       <div className="app">
         <Route exact path='/' render={() => (
-          <BooksList books={books} />
+          <BooksList onShelfChange={this.onShelfChange} />
         )} />
         <Route path='/search' render={() => (
-          <BooksSearch />
+          <BooksSearch onShelfChange={this.onShelfChange} />
         )} />
       </div>
     )
