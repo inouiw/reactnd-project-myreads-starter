@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types'
 
 class Book extends Component {
-  handleChange = (event) => {
+    handleChange = (event) => {
     const value = event.target.value;
     this.props.onShelfChange(this.props.book, value);
   };
@@ -13,9 +13,9 @@ class Book extends Component {
       <li>
         <div className="book">
           <div className="book-top">
-            <img src={book.imageLinks && book.imageLinks.thumbnail} alt={book.title} />
+            <img src={book.imageLinks && book.imageLinks.thumbnail} alt={'Image for ' + book.title} />
             <div className="book-shelf-changer">
-              <select value={book.shelf} onChange={this.handleChange}>
+            <select value={book.shelf || 'none'} onChange={this.handleChange}>
                 <option value="move" disabled>Move to...</option>
                 <option value="currentlyReading">Currently Reading</option>
                 <option value="wantToRead">Want to Read</option>
@@ -30,7 +30,6 @@ class Book extends Component {
       </li>
     );
   }
-
 }
 
 Book.propTypes = {

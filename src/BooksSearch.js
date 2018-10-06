@@ -24,10 +24,28 @@ class BooksSearch extends Component {
   };
 
   searchBooks = () => {
-    BooksAPI.search(this.state.searchText)
-    .then(foundBooks => {
-      this.setState({foundBooks});
-      console.log(foundBooks);
+    // The search method does not return the shelf a book is on. So need to join with getAll.
+    Promise.all([BooksAPI.search(this.state.searchText), BooksAPI.getAll()])
+    .then(([foundBooks, booksInShelf]) => {
+      // Result may be an error object instead of an array with the results.
+      if (Array.isArray(foundBooks)) {
+        // Create Map for booksInShelf for fast lookup.
+        const booksInShelfMap = new Map()
+        booksInShelf.forEach(b => booksInShelfMap.set(b.id, b));
+        const foundBooksWithShelf = foundBooks.map(foundBook => {
+          const bookInShelf = booksInShelfMap.get(foundBook.id);
+          if (bookInShelf) {
+            // Book is in shelf. Return shelf book because it has shelf prop.
+            return bookInShelf;
+          }
+          // Book is not in shelf. Return book from search result.
+          return foundBook;
+        });
+        this.setState({foundBooks: foundBooksWithShelf});
+      }
+      else {
+        this.setState({foundBooks: []});
+      }
     });
   }
 
