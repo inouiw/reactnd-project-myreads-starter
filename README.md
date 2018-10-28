@@ -1,6 +1,6 @@
 # MyReads Project
 
-This is the finished Project for the final assessment project for Udacity's React Fundamentals course. 
+This is my MyReads Project for the Udacity's React course. 
 See `README_old.md` for the original README that describes the project.
 Note that the Search page only supports the keywords in file `SEARCH_TERMS.md` like 'Android'.
 
